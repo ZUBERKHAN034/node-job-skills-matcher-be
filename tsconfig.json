@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "module": "commonjs",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+    }
+  },
+  "include": ["src/**/*.ts", "src/secrets/*.json", "env.d.ts"],
+  "exclude": ["src/test"]
+}

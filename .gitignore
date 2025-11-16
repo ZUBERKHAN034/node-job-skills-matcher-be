@@ -1,0 +1,23 @@
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore locally generated files
+/local/
+/dist/
+/build/
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore Docker logs
+docker-logs/
+
+# Ignore application logs
+logs/
+
+# Ignore Redis dump files
+*.rdb
+
+# Ignore environment variables file
+.env
+env.d.ts
