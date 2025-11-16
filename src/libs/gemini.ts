@@ -21,28 +21,24 @@ const SKILL_SCHEMA = {
   ],
 };
 
-const REPHRASING_SCHEMA = {
+const JOB_MATCHER_SCHEMA = {
   functionDeclarations: [
     {
-      name: "generate_rephrasing_ideas",
-      description: "Generate professional rephrasing ideas for skills to make them more impactful in resume bullet points.",
+      name: "match_job_file",
+      description: "Match a job title to the most appropriate job file name from a list of available files.",
       parametersJsonSchema: {
         type: "object",
         properties: {
-          ideas: {
-            type: "array",
-            description: "List of rephrasing ideas with original and rephrased versions",
-            items: {
-              type: "object",
-              properties: {
-                original: { type: "string", description: "Original skill or phrase" },
-                rephrased: { type: "string", description: "Professional rephrased version" },
-              },
-              required: ["original", "rephrased"],
-            },
+          matchedFile: {
+            type: "string",
+            description: "The best matching job file name from the provided list",
+          },
+          confidence: {
+            type: "string",
+            description: "Confidence level: high, medium, or low",
           },
         },
-        required: ["ideas"],
+        required: ["matchedFile"],
       },
     },
   ],
@@ -68,27 +64,32 @@ class GeminiService {
     return (functionCall?.args?.skills as string[]) || [];
   }
 
-  async generateRephrasingIdeas(skills: string[]): Promise<Array<{ original: string; rephrased: string }>> {
-    const prompt = `Generate professional resume bullet point rephrasing ideas for these skills: ${skills.join(", ")}. 
+  async matchJobFile(jobTitle: string, jobs: string[]): Promise<string> {
+    const prompt = `Given the job title "${jobTitle}", find the best matching file name from this list: ${jobs.join(", ")}
     
-For each skill, create an impactful, action-oriented bullet point that:
-- Starts with a strong action verb
-- Shows measurable impact or business value
-- Uses professional language
-- Makes the skill stand out
+Consider:
+- Semantic similarity (e.g., "Backend Engineer" matches "backend_developer.html")
+- Common job title variations (e.g., "Full Stack" matches "fullstack" or "full_stack")
+- Technology-specific roles (e.g., "React Developer" matches "frontend_developer.html")
+- Seniority levels are less important than role type
 
-Example format:
-- Product analytics dashboards → "Built and maintained self-serve product analytics dashboards to monitor feature adoption and experiment impact."
-- Monetization experimentation → "Designed and analyzed pricing and paywall experiments to improve revenue while protecting user experience."`;
+Return the exact file name from the list that best matches. If no good match exists, return "none".`;
 
     const response = await this.aiClient.models.generateContent({
       model: constants.AI.GOOGLE.MODEL_NAME,
       contents: prompt,
-      config: { tools: [REPHRASING_SCHEMA] },
+      config: { tools: [JOB_MATCHER_SCHEMA] },
     });
 
     const functionCall = response.functionCalls?.[0];
-    return (functionCall?.args?.ideas as Array<{ original: string; rephrased: string }>) || [];
+    const matchedFile = functionCall?.args?.matchedFile as string;
+    
+    // Verify the matched file exists in the jobs array
+    if (matchedFile && jobs.includes(matchedFile)) {
+      return matchedFile;
+    }
+    
+    return "none";
   }
 }
 

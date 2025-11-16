@@ -7,13 +7,11 @@ import constants from "@/common/constants";
 class JobScraper {
   async scrapeJobsByTitle(jobTitle: string): Promise<string[] | null> {
     const filesPath = path.join(__dirname, constants.PATHS.JOB_LISTINGS);
-    const files = await fs.readdir(filesPath);
+    const jobs = await fs.readdir(filesPath);
 
-    const matchingFile = files.find((file) =>
-      file.toLowerCase().includes(jobTitle.toLowerCase().replace(/\s+/g, "_"))
-    );
-
-    if (!matchingFile) return null;
+    const matchingFile = await geminiService.matchJobFile(jobTitle, jobs);
+    if(matchingFile == 'none') return null;
+    
 
     const html = await fs.readFile(path.join(filesPath, matchingFile), "utf-8");
 
